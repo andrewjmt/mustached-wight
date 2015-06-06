@@ -1,0 +1,11 @@
+{
+    "name" : "multiplayer",
+    "description" : "proof of concept for multiplayer game",
+    "version" : "0.0.0",
+    "dependencies" : {
+        "http" : "latest",
+        "socket.io" : "latest",
+        "express" : "latest",
+        "node-uuid" : "latest"
+    }
+}
