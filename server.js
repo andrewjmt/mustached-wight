@@ -89,10 +89,10 @@ function mainGameLoop() {
 			} else if (!players[i].left && players[i].right && isOccupiable(px + 1, py)) {
 				players[i].entity.position.x += 1;
 				players[i].restCounter = players[i].movementDelay;
-			} else if (players[i].up && !players[i].down && isOccupiable(py - 1, py)) {
+			} else if (players[i].up && !players[i].down && isOccupiable(px, py - 1)) {
 				players[i].entity.position.y -= 1;
 				players[i].restCounter = players[i].movementDelay;
-			} else if (!players[i].up && players[i].down && isOccupiable(py + 1, py)) {
+			} else if (!players[i].up && players[i].down && isOccupiable(px, py + 1)) {
 				players[i].entity.position.y += 1;
 				players[i].restCounter = players[i].movementDelay;
 			}
