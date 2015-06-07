@@ -155,7 +155,7 @@ io.on('connection', function (socket) {
     // if i != max_players after the loop, there is an empty spot
     if(i != max_players) {
         // generate a game entity representing the player with uuid
-        entity = new Entity(uuid.v4(), i);
+        entity = new Entity(uuid.v4(), i, true);
         entity.position.x = map.spawns[i].x;
         entity.position.y = map.spawns[i].y;
         players[i] = new Player(socket, i, entity);
@@ -167,6 +167,18 @@ io.on('connection', function (socket) {
         socket.on('keyDown', function(keyData) {
             switch(keyData) {
                 case 68:  // d
+					players[i].right = true;
+                    break;
+                case 65: // a
+                    players[i].left = true;
+                    break;
+                case 83: // s
+                    players[i].down = true;
+                    break;
+                case 87: // w
+                    players[i].up = true;
+                    break;
+				case 68:  // d
 					players[i].right = true;
                     break;
                 case 65: // a
@@ -214,7 +226,7 @@ function isOccupiable(x, y) {
     // is there another entity there?
     for(var id in activeEntities)
         if(activeEntities.hasOwnProperty(id))
-            if(activeEntities[id].position.x == x && activeEntities[id].position.y == y)
+            if(activeEntities[id].position.x == x && activeEntities[id].position.y == y && activeEntities[id].collides)
                 return false;
 
     // no collisions found
@@ -232,6 +244,11 @@ function Player(socket, num, entity) {
 	this.down = false;
 	this.left = false;
 	this.right = false;
+	this.j = false; // 74
+	this.i = false; // 73
+	this.o = false; // 79
+	this.p = false; // 80
+	this.space = false;
 	// frames between moves
 	this.movementDelay = movementDelay;
 	// # of frames until next move permitted
@@ -251,11 +268,12 @@ function Player(socket, num, entity) {
 }
 
 // abstracts the data associated to anything that can appear on screen
-function Entity(id, symbol) {
+function Entity(id, symbol, collides) {
     this.id = id;
     this.symbol = symbol;
     this.position = {"x": -1, "y": -1};
     this.oldPosition = this.position;
+	this.collides = collides;
 }
 
 // holds the map as well as the spawn points
