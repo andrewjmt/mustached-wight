@@ -6,6 +6,8 @@ var bps = 45; // broadcasts per second
 var interval = 1000 / fps;
 var broadcastInterval = 1000 / bps;
 
+var playerArray = [0, 1, 2, 3];
+
 var movementDelay = 5;
 
 var mapFile = '/testMap.json';
@@ -75,9 +77,26 @@ fs.readFile(__dirname + mapFile, function(err, data) {
     console.log(prefix() + 'Started game and broadcast loops.');
 });
 
+/**
+ * Randomize array element order in-place.
+ * Using Fisher-Yates shuffle algorithm.
+ * From http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+ * TODO: rewrite to avoid license shit
+ */
+function shufflePlayerArray() {
+    for (var i = playerArray.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = playerArray[i];
+        playerArray[i] = playerArray[j];
+        playerArray[j] = temp;
+    }
+}
+
 // game loop
 function mainGameLoop() {
-	for(var i = 0; i < max_players; i++) {
+	shufflePlayerArray();
+	for(var j = 0; j < max_players; j++) {
+		i = playerArray[j];
 		if (players[i] == null) continue;
 		if (players[i].restCounter > 0) players[i].restCounter--;
 		else {
