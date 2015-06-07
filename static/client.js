@@ -65,11 +65,15 @@ function handleKeyDown(keyEvent) {
 
     // tell the server a direction button was pressed
     if(keyEvent.keyCode == 68 || keyEvent.keyCode == 65 || keyEvent.keyCode == 83 || keyEvent.keyCode == 87)
-        socket.emit('key', keyEvent.keyCode);
+        socket.emit('keyDown', keyEvent.keyCode);
 }
 
 function handleKeyUp(keyEvent) {
     keyEvent.preventDefault();
+	
+	// tell the server a direction button was pressed
+    if(keyEvent.keyCode == 68 || keyEvent.keyCode == 65 || keyEvent.keyCode == 83 || keyEvent.keyCode == 87)
+        socket.emit('keyUp', keyEvent.keyCode);
 }
 
 // draw loop

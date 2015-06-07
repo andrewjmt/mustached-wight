@@ -6,6 +6,8 @@ var bps = 45; // broadcasts per second
 var interval = 1000 / fps;
 var broadcastInterval = 1000 / bps;
 
+var movementDelay = 5;
+
 var mapFile = '/testMap.json';
 var max_players = 4;
 var players = new Array(max_players);
@@ -75,10 +77,30 @@ fs.readFile(__dirname + mapFile, function(err, data) {
 
 // game loop
 function mainGameLoop() {
+	for(var i = 0; i < max_players; i++) {
+		if (players[i] == null) continue;
+		if (players[i].restCounter > 0) players[i].restCounter--;
+		else {
+            var px = players[i].entity.position.x;
+            var py = players[i].entity.position.y;
+			if (players[i].left && !players[i].right && isOccupiable(px - 1, py)) {
+				players[i].entity.position.x -= 1;
+				players[i].restCounter = players[i].movementDelay;
+			} else if (!players[i].left && players[i].right && isOccupiable(px + 1, py)) {
+				players[i].entity.position.x += 1;
+				players[i].restCounter = players[i].movementDelay;
+			} else if (players[i].up && !players[i].down && isOccupiable(py - 1, py)) {
+				players[i].entity.position.y -= 1;
+				players[i].restCounter = players[i].movementDelay;
+			} else if (!players[i].up && players[i].down && isOccupiable(py + 1, py)) {
+				players[i].entity.position.y += 1;
+				players[i].restCounter = players[i].movementDelay;
+			}
+		}
+		players[i].socket.emit('update', activeEntities);
+	}
     setTimeout(function() {
         window.requestAnimationFrame(mainGameLoop);
-
-        // do updates here
     }, interval);
 }
 
@@ -123,28 +145,37 @@ io.on('connection', function (socket) {
         // TODO eventually get rid of the next line and integrate it into the needsBroadcast (make first time update and usual update the same)
         socket.emit('initialdata', { 'map' : map, 'activeEntities' : activeEntities });
         // start listening for keypresses
-        socket.on('key', function(keyData) {
-            var px = players[i].entity.position.x;
-            var py = players[i].entity.position.y;
+        socket.on('keyDown', function(keyData) {
             switch(keyData) {
                 case 68:  // d
-                    if(isOccupiable(px + 1, py))
-                        players[i].entity.position.x += 1;
+					players[i].right = true;
                     break;
                 case 65: // a
-                    if(isOccupiable(px - 1, py))
-                        players[i].entity.position.x -= 1;
+                    players[i].left = true;
                     break;
                 case 83: // s
-                    if(isOccupiable(px, py + 1))
-                        players[i].entity.position.y += 1;
+                    players[i].down = true;
                     break;
                 case 87: // w
-                    if(isOccupiable(px, py - 1))
-                        players[i].entity.position.y -= 1;
+                    players[i].up = true;
                     break;
             }
-            needsBroadcast = true;
+		});
+		socket.on('keyUp', function(keyData) {
+            switch(keyData) {
+                case 68:  // d
+					players[i].right = false;
+                    break;
+                case 65: // a
+                    players[i].left = false;
+                    break;
+                case 83: // s
+                    players[i].down = false;
+                    break;
+                case 87: // w
+                    players[i].up = false;
+                    break;
+            }
         });
         // make sure everyone gets the update
         needsBroadcast = true;
@@ -177,6 +208,15 @@ function Player(socket, num, entity) {
     this.id = socket.id;
     this.num = num;
     this.entity = entity;
+	// keys currently pressed
+	this.up = false;
+	this.down = false;
+	this.left = false;
+	this.right = false;
+	// frames between moves
+	this.movementDelay = movementDelay;
+	// # of frames until next move permitted
+	this.restCounter = 0;
     console.log(prefix() + 'Player ' + this.id + ' connected. Assigned player number ' + this.num + '.');
     console.log(prefix() + 'Player ' + this.num + ' spawns at (' + this.entity.position.x + ', ' + this.entity.position.y + ').');
     socket.emit('log', {message: 'Connected as Player ' + this.num + ' with id ' + this.id + '.'});
